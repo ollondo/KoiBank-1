@@ -79,6 +79,7 @@ class UsuarioSchema(ma.Schema):
 usuario_schema = UsuarioSchema()
 usuarios_schema = UsuarioSchema(many=True)
 
+
 # Rota para cadastrar um novo usuário
 @app.route('/cadastrar', methods=['POST'])
 @cross_origin()
@@ -92,12 +93,12 @@ def cadastrar():
 
         # Crie um novo objeto Usuario a partir dos dados do formulário
         novo_usuario = Usuario(
-    primeiro_nome='Novo',
-    ultimo_nome='Usuário',
-    cpf=gerar_cpf(),
-    senha=gerar_senha(),
-    email='novo.usuario@example.com',
-)
+            primeiro_nome=dados_do_formulario.get('primeiro_nome', 'Nome'),
+            ultimo_nome=dados_do_formulario.get('ultimo_nome', 'Sobrenome'),
+            cpf=dados_do_formulario['cpf'],
+            senha=dados_do_formulario.get('senha', gerar_senha()),  # Use a senha fornecida ou gere uma aleatória
+            email=dados_do_formulario.get('email', 'usuario@example.com'),
+        )
 
         # Adicione o novo usuário ao banco de dados
         db.session.add(novo_usuario)
@@ -109,6 +110,7 @@ def cadastrar():
     except Exception as e:
         # Se ocorrer um erro, retorna uma mensagem de erro
         return jsonify({'erro': str(e)}), 500  # 500 é o código de status para erro interno do servidor
+
 
 # Rota para fazer login
 @cross_origin()
