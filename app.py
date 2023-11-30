@@ -8,7 +8,7 @@ import string
 import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins="https://congenial-space-winner-7qg96rvw6vg2pvpv-5502.app.github.dev")
 
 # Configuração do banco de dados SQLite
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -223,21 +223,56 @@ def deletar_usuario(id):
 
     return jsonify({'mensagem': 'Usuário deletado com sucesso'})
 
-
-@app.route('/api/usuarios/detalhes/<int:id>', methods=['GET'])
+# Rota para excluir a conta do usuário
+@app.route('/api/excluir-conta', methods=['DELETE'])
 @cross_origin()
-def obter_detalhes_usuario(id):
-    return retrieve_usuario(id)   
+def excluir_conta():
+    try:
+        # Suponha que você tenha o ID do usuário (substitua com o valor real)
+        id_do_usuario = 1
 
-@app.route('/api/usuarios/<int:id>', methods=['GET'])
+        # Encontre o usuário no banco de dados pelo ID
+        usuario = Usuario.query.get(id_do_usuario)
+
+        # Verifique se o usuário existe
+        if usuario:
+            # Exclua o usuário do banco de dados
+            db.session.delete(usuario)
+            db.session.commit()
+
+            return jsonify({'message': 'Conta excluída com sucesso'})
+        else:
+            return jsonify({'message': 'Usuário não encontrado'}), 404
+
+    except Exception as e:
+        return jsonify({'message': 'Erro ao excluir a conta'}), 500
+    
+    # Rota para editar um usuário existente
+@app.route('/api/usuarios/editar/<int:id>', methods=['PUT'])
 @cross_origin()
-def obter_usuario(id):
+def editar_usuario(id):
     usuario = Usuario.query.get(id)
 
     if not usuario:
         return jsonify({'erro': 'Usuário não encontrado'}), 404
 
-    return usuario_schema.jsonify(usuario)
+    try:
+        dados_do_formulario = request.get_json()
+
+        # Atualize os campos do usuário com os dados do formulário
+        usuario.primeiro_nome = dados_do_formulario['primeiro_nome']
+        usuario.ultimo_nome = dados_do_formulario['ultimo_nome']
+        usuario.cpf = dados_do_formulario['cpf']
+        usuario.email = dados_do_formulario['email']
+        usuario.senha = dados_do_formulario['senha']
+
+        db.session.commit()
+
+        return jsonify({'mensagem': 'Dados do usuário atualizados com sucesso!'})
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5004)
